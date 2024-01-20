@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your App Name - Homepage</title>
+</head>
+<body>
+<h1>Welcome to Codify!</h1>
+<p>Upload an image and click convert.</p>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="image">
+    <button type="submit">Upload</button>
+</form>
+
+{% if java_code %}
+    <pre>{{ java_code }}</pre>
+{% endif %}
+
+
+</body>
+</html>
