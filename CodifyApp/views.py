@@ -21,7 +21,7 @@ def index(request):
             # Process the image using the OCR function
             java_code = process_image_to_java(image_path,
                 # Pass your OpenAI credentials here
-                openai_api_key="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",
+                openai_api_key="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",
                 assistant_id="asst_sAipVyYZrnVwhvyoEUavB8BI")
             return render(request, "index.html", {"java_code": java_code})
     else:
