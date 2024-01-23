@@ -8,7 +8,7 @@ def detect_text(image_path):
 
     with open(image_path, "rb") as image_file:
         content = image_file.read()
-
+# git test
     image = vision.Image(content=content)
     response = client.text_detection(image=image)
     texts = response.text_annotations
