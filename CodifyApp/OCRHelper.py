@@ -1,25 +1,51 @@
 import time
-from google.cloud import vision
+from decouple import config
 from openai import OpenAI
+import base64
+import requests
+import json
+
 def detect_text(image_path):
-    """Detects text in the image using Google Cloud Vision API."""
+    """Detects text in the image using Google Cloud Vision API REST endpoint."""
 
-    client = vision.ImageAnnotatorClient()
+    # Replace 'YOUR_API_KEY' with your actual Google Cloud Vision API key
+    api_key = config('GOOGLE_API_KEY')
+    url = 'https://vision.googleapis.com/v1/images:annotate?key=' + api_key
+    headers = {
+        'Content-Type': 'application/json'
+    }
 
+    # Read and encode the image file
     with open(image_path, "rb") as image_file:
-        content = image_file.read()
-# git test
-    image = vision.Image(content=content)
-    response = client.text_detection(image=image)
-    texts = response.text_annotations
+        encoded_image = base64.b64encode(image_file.read()).decode('UTF-8')
 
-    if response.error.message:
-        raise Exception(
-            "{}\nFor more info on error messages, check: "
-            "https://cloud.google.com/apis/design/errors".format(response.error.message)
-        )
+    # Construct the request body
+    request_body = {
+        "requests": [
+            {
+                "image": {
+                    "content": encoded_image
+                },
+                "features": [
+                    {
+                        "type": "TEXT_DETECTION"
+                    }
+                ]
+            }
+        ]
+    }
 
-    return " ".join(text.description for text in texts)
+    # Send the request
+    response = requests.post(url, headers=headers, data=json.dumps(request_body))
+
+    # Parse and return the response
+    if response.status_code == 200:
+        texts = response.json().get('responses', [{}])[0].get('textAnnotations', [])
+        return " ".join(text['description'] for text in texts)
+    else:
+        # Handle errors
+        error_message = response.json().get('error', {}).get('message', 'Unknown error')
+        raise Exception(f"Error in text detection API: {error_message}")
 
 
 def generate_java_code(text_prompt, openai_api_key, assistant_id):

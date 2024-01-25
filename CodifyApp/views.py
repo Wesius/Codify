@@ -14,7 +14,6 @@ def index(request):
 
             # Save the image using default_storage
             file_name = default_storage.save(image_file.name, image_file)
-            image_path = default_storage.url(file_name)  # Get the URL for later use
             image_path = os.path.join(settings.MEDIA_ROOT, image_file.name)
 
             # Process the image using the OCR function
