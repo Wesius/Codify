@@ -35,19 +35,26 @@ def detect_text(image_path):
         ]
     }
 
+
     # Send the request using httpx
     with httpx.Client() as client:
         response = client.post(url, headers=headers, data=json.dumps(request_body))
+     # Check if the response body is empty or not in JSON format
+    if not response.content:
+        raise Exception("Empty response body")
+    try:
+        response_data = response.json()
+    except json.JSONDecodeError:
+        raise Exception("Invalid JSON response")
 
-    # Parse and return the response
+        # Parse and return the response
     if response.status_code == 200:
-        texts = response.json().get('responses', [{}])[0].get('textAnnotations', [])
+        texts = response_data.get('responses', [{}])[0].get('textAnnotations', [])
         return " ".join(text['description'] for text in texts)
     else:
         # Handle errors
-        error_message = response.json().get('error', {}).get('message', 'Unknown error')
+        error_message = response_data.get('error', {}).get('message', 'Unknown error')
         raise Exception(f"Error in text detection API: {error_message}")
-
 
 
 def generate_java_code(text_prompt, openai_api_key, assistant_id):
