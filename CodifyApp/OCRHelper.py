@@ -36,7 +36,7 @@ def detect_text(image_path):
     }
 
     # Send the request
-    response = requests.post(url, headers=headers, data=json.dumps(request_body))
+    response = requests.post(url, headers=headers, data=json.dumps(request_body), verify=False)
 
     # Parse and return the response
     if response.status_code == 200:
