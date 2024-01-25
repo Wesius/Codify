@@ -1,16 +1,16 @@
 import time
+import base64
+import httpx
+import json
 from decouple import config
 from openai import OpenAI
-import base64
-import requests
-import json
 
 def detect_text(image_path):
     """Detects text in the image using Google Cloud Vision API REST endpoint."""
 
-    # Replace 'YOUR_API_KEY' with your actual Google Cloud Vision API key
+    # Use your actual Google Cloud Vision API key
     api_key = config('GOOGLE_API_KEY')
-    url = 'https://vision.googleapis.com/v1/images:annotate?key=' + api_key
+    url = f'https://vision.googleapis.com/v1/images:annotate?key={api_key}'
     headers = {
         'Content-Type': 'application/json'
     }
@@ -35,8 +35,9 @@ def detect_text(image_path):
         ]
     }
 
-    # Send the request
-    response = requests.post(url, headers=headers, data=json.dumps(request_body), verify=False)
+    # Send the request using httpx
+    with httpx.Client() as client:
+        response = client.post(url, headers=headers, data=json.dumps(request_body))
 
     # Parse and return the response
     if response.status_code == 200:
@@ -46,6 +47,7 @@ def detect_text(image_path):
         # Handle errors
         error_message = response.json().get('error', {}).get('message', 'Unknown error')
         raise Exception(f"Error in text detection API: {error_message}")
+
 
 
 def generate_java_code(text_prompt, openai_api_key, assistant_id):
