@@ -2,11 +2,15 @@ import time
 from openai import OpenAI
 import io
 from google.cloud import vision
+from google.cloud import vision_v1p4beta1 as vision
+
 
 def detect_text(image_path):
     """Detects text in the image using Google Cloud Vision API with client libraries."""
 
     # Instantiates a client
+
+    # Creates a client
     client = vision.ImageAnnotatorClient()
 
     # Loads the image into memory
