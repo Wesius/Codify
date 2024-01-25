@@ -1,62 +1,35 @@
 import time
-import base64
-import httpx
-import json
-from decouple import config
 from openai import OpenAI
+import io
+from google.cloud import vision
 
 def detect_text(image_path):
-    """Detects text in the image using Google Cloud Vision API REST endpoint."""
+    """Detects text in the image using Google Cloud Vision API with client libraries."""
 
-    # Use your actual Google Cloud Vision API key
-    api_key = config('GOOGLE_API_KEY')
-    url = f'https://vision.googleapis.com/v1/images:annotate?key={api_key}'
-    headers = {
-        'Content-Type': 'application/json'
-    }
+    # Instantiates a client
+    client = vision.ImageAnnotatorClient()
 
-    # Read and encode the image file
-    with open(image_path, "rb") as image_file:
-        encoded_image = base64.b64encode(image_file.read()).decode('UTF-8')
+    # Loads the image into memory
+    with io.open(image_path, 'rb') as image_file:
+        content = image_file.read()
 
-    # Construct the request body
-    request_body = {
-        "requests": [
-            {
-                "image": {
-                    "content": encoded_image
-                },
-                "features": [
-                    {
-                        "type": "TEXT_DETECTION"
-                    }
-                ]
-            }
-        ]
-    }
+    image = vision.Image(content=content)
 
+    # Performs text detection on the image file
+    response = client.text_detection(image=image)
+    annotations = response.text_annotations
 
-    # Send the request using httpx
-    with httpx.Client() as client:
-        response = client.post(url, headers=headers, data=json.dumps(request_body))
-     # Check if the response body is empty or not in JSON format
-    if not response.content:
-        raise Exception("Empty response body")
-    try:
-        print(response.content.decode('utf-8'))
-        response_data = response.json()
-    except json.JSONDecodeError:
-        raise Exception("Invalid JSON response")
+    if response.error.message:
+        raise Exception(f"{response.error.message}")
 
-        # Parse and return the response
-    if response.status_code == 200:
-        texts = response_data.get('responses', [{}])[0].get('textAnnotations', [])
-        return " ".join(text['description'] for text in texts)
+    if annotations:
+        return " ".join(annotation.description for annotation in annotations)
     else:
-        # Handle errors
-        error_message = response_data.get('error', {}).get('message', 'Unknown error')
-        raise Exception(f"Error in text detection API: {error_message}")
+        return "No text detected"
 
+# Example usage
+# text_detected = detect_text('path_to_your_image.jpg')
+# print(text_detected)
 
 def generate_java_code(text_prompt, openai_api_key, assistant_id):
     """Generates Java code from the text prompt using OpenAI API."""
