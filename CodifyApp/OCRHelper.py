@@ -43,6 +43,7 @@ def detect_text(image_path):
     if not response.content:
         raise Exception("Empty response body")
     try:
+        print(response.content.decode('utf-8'))
         response_data = response.json()
     except json.JSONDecodeError:
         raise Exception("Invalid JSON response")
